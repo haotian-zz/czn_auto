@@ -15,3 +15,5 @@ dist/
 .venv-build/
 .venv/
 venv/
+
+.idea
