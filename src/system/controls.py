@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ctypes
 from pathlib import Path
 
 from core.settings import VK_CODES
@@ -28,4 +29,3 @@ def sleep_interruptible(seconds: float, stop_keys: list[str], stop_file: Path | 
             return True
         time.sleep(min(0.05, max(0.0, deadline - time.time())))
     return False
-

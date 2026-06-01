@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 
 from system.controls import sleep_interruptible, stop_requested
-from vision.detector import CznDetector, print_state, start_match_looks_like_team_fallback
+from vision.detector import CznDetector, print_state, start_match_looks_like_team_fallback, save_image, annotate
 from system.io_system import click_frame_point, click_norm, rapid_click_norm, screen_shot
 from core.models import DetectionState
 from core.settings import *

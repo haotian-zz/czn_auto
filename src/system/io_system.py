@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 from ctypes import wintypes
 
+from system.controls import sleep_interruptible, stop_requested
 from vision.detector import CznDetector
 from core.models import DetectionState
 from core.settings import _DXGI_CAMERAS, _FORCED_CAPTURE_AREAS, _INPUT_TARGET_HWND_CACHE, _coerce_config_value

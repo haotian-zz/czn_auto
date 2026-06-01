@@ -4,10 +4,11 @@ import dataclasses
 
 import numpy as np
 
-from actions.common import checked_dialog_advance, fast_abandon_no_legend, fast_advance_unknown, fast_start_to_team, wait_for_detected_state, wait_visual_change
+from actions.common import checked_dialog_advance, fast_abandon_no_legend, fast_advance_unknown, fast_start_to_team, \
+    wait_for_detected_state, wait_visual_change, choice_confirm_point_for
 from system.controls import parse_stop_keys, sleep_interruptible, stop_requested
 from vision.detector import CznDetector, print_state, start_match_looks_like_team_fallback
-from system.io_system import click_frame_point, click_norm, screen_shot
+from system.io_system import click_frame_point, click_norm, screen_shot, probe_game_window_capture
 from core.models import DetectionState
 from core.settings import *
 from ui.logging import print_action
