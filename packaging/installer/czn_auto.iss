@@ -11,7 +11,7 @@ AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
-OutputDir=..\dist\installer
+OutputDir=..\..\dist\installer
 OutputBaseFilename=CZNAutoSetup-{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
@@ -27,14 +27,14 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"
 
 [Files]
-Source: "..\dist\CZNAuto\*"; DestDir: "{app}"; Excludes: "config.json"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\start_czn_auto_exe.bat"; DestDir: "{app}"; DestName: "start_czn_auto.bat"; Flags: ignoreversion
-Source: "..\run_one_click_exe.bat"; DestDir: "{app}"; DestName: "run_one_click.bat"; Flags: ignoreversion
-Source: "..\stop_czn_auto_exe.bat"; DestDir: "{app}"; DestName: "stop_czn_auto.bat"; Flags: ignoreversion
-Source: "..\open_config_exe.bat"; DestDir: "{app}"; DestName: "open_config.bat"; Flags: ignoreversion
-Source: "..\config.example.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\config.example.json"; DestDir: "{app}"; DestName: "config.json"; Flags: ignoreversion onlyifdoesntexist
-Source: "..\CONFIG.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\dist\CZNAuto\*"; DestDir: "{app}"; Excludes: "config.json"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\scripts\start_czn_auto_exe.bat"; DestDir: "{app}"; DestName: "start_czn_auto.bat"; Flags: ignoreversion
+Source: "..\scripts\run_one_click_exe.bat"; DestDir: "{app}"; DestName: "run_one_click.bat"; Flags: ignoreversion
+Source: "..\scripts\stop_czn_auto_exe.bat"; DestDir: "{app}"; DestName: "stop_czn_auto.bat"; Flags: ignoreversion
+Source: "..\scripts\open_config_exe.bat"; DestDir: "{app}"; DestName: "open_config.bat"; Flags: ignoreversion
+Source: "..\..\config.example.json"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\config.example.json"; DestDir: "{app}"; DestName: "config.json"; Flags: ignoreversion onlyifdoesntexist
+Source: "..\..\CONFIG.md"; DestDir: "{app}"; Flags: ignoreversion
 
 [InstallDelete]
 Type: files; Name: "{app}\run_min_loop.bat"

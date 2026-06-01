@@ -1,6 +1,6 @@
 @echo off
 setlocal
-cd /d "%~dp0.."
+cd /d "%~dp0"
 net session >nul 2>&1
 if %errorlevel% neq 0 (
   echo Requesting administrator permission for game input...
@@ -10,5 +10,5 @@ if %errorlevel% neq 0 (
 del .\STOP 2>nul
 echo Background one-click test as administrator.
 echo Stop keys: F8, ESC, PAUSE, END
-python .\czn_auto\czn_detector.py --live --act --input-backend postmessage_activate --advance-on-unknown --fast-start-to-team --max-seconds 8 --max-clicks 1
+python .\src\main.py --live --act --input-backend postmessage_activate --advance-on-unknown --fast-start-to-team --max-seconds 8 --max-clicks 1
 pause

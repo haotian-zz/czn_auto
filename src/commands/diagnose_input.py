@@ -5,8 +5,9 @@ import argparse
 import os
 from ctypes import wintypes
 
-import czn_detector
-from czn_detector import click_area_for, describe_window_at, message_target_at, set_dpi_awareness, window_at
+import core.settings as czn_detector
+from system.io_system import click_area_for, describe_window_at, message_target_at, window_at
+from core.settings import set_dpi_awareness, set_runtime_value
 
 kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
 advapi32 = ctypes.WinDLL("advapi32", use_last_error=True)
@@ -174,7 +175,7 @@ def main() -> None:
     args = parser.parse_args()
 
     set_dpi_awareness()
-    czn_detector.INPUT_TARGET_WINDOW_TITLE = args.target_window_title.strip()
+    set_runtime_value("INPUT_TARGET_WINDOW_TITLE", args.target_window_title.strip())
     x, y = args.x, args.y
     hwnd = window_at(x, y)
     pid = wintypes.DWORD()

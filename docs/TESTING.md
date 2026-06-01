@@ -30,7 +30,7 @@ cd /d path\to\czn_auto
 用于确认 Python 文件和 JSON 配置没有写坏。
 
 ```bat
-python -m py_compile czn_detector.py diagnose_input.py state_check.py
+python -m py_compile src\main.py src\state_check.py src\diagnose_input.py src\commands\cli.py src\commands\state_check.py src\commands\diagnose_input.py src\core\settings.py src\core\models.py src\vision\detector.py src\system\io_system.py src\system\controls.py src\actions\common.py src\ui\logging.py src\state_machines\live\session.py
 python -m json.tool config.json
 python -m json.tool config.example.json
 ```
@@ -46,7 +46,7 @@ python -m json.tool config.example.json
 把游戏窗口打开后运行：
 
 ```bat
-python diagnose_input.py --dry-run
+python src\diagnose_input.py --dry-run
 ```
 
 看输出里的：
@@ -59,7 +59,7 @@ target_at=... title='...'
 如果鼠标默认坐标不在游戏窗口上，把鼠标放到游戏窗口里，或者指定一个游戏内坐标：
 
 ```bat
-python diagnose_input.py --x 1000 --y 800 --dry-run
+python src\diagnose_input.py --x 1000 --y 800 --dry-run
 ```
 
 拿到标题后，把其中稳定的一部分写进 `config.json`：
@@ -73,7 +73,7 @@ python diagnose_input.py --x 1000 --y 800 --dry-run
 用于确认程序能按标题找到游戏窗口。
 
 ```bat
-python diagnose_input.py --target-window-title "你的国服窗口标题" --dry-run
+python src\diagnose_input.py --target-window-title "你的国服窗口标题" --dry-run
 ```
 
 通过标准：输出里出现 `configured_title`，并且 title 是游戏窗口。
@@ -91,7 +91,7 @@ python diagnose_input.py --target-window-title "你的国服窗口标题" --dry-
 把游戏停在某个明确界面，例如主页、配队页、三选一页，然后运行：
 
 ```bat
-python state_check.py
+python src\state_check.py
 ```
 
 它会生成：
@@ -122,7 +122,7 @@ unknown           未识别
 用于观察连续画面识别结果，不会点击鼠标。
 
 ```bat
-python czn_detector.py --live --max-seconds 30
+python src\main.py --live --max-seconds 30
 ```
 
 通过标准：切换不同游戏界面时，日志里的状态跟画面一致。
@@ -130,7 +130,7 @@ python czn_detector.py --live --max-seconds 30
 常用加长版本：
 
 ```bat
-python czn_detector.py --live --max-seconds 120 --wide-match-scales
+python src\main.py --live --max-seconds 120 --wide-match-scales
 ```
 
 `--wide-match-scales` 会用更多缩放比例匹配模板，速度慢一点，但适合刚适配模板时排查问题。
@@ -142,7 +142,7 @@ python czn_detector.py --live --max-seconds 120 --wide-match-scales
 建议先停在主页或配队页，再运行：
 
 ```bat
-python czn_detector.py --live --act --max-seconds 8 --max-clicks 1 --input-backend postmessage_activate
+python src\main.py --live --act --max-seconds 8 --max-clicks 1 --input-backend postmessage_activate
 ```
 
 通过标准：只点击一次，并且点到正确按钮。
@@ -150,7 +150,7 @@ python czn_detector.py --live --act --max-seconds 8 --max-clicks 1 --input-backe
 如果后台点击没反应，测试真实鼠标模式：
 
 ```bat
-python czn_detector.py --live --act --max-seconds 8 --max-clicks 1 --input-backend sendinput
+python src\main.py --live --act --max-seconds 8 --max-clicks 1 --input-backend sendinput
 ```
 
 如果真实鼠标模式能点，后台模式不能点，通常是窗口权限或游戏不接受后台消息。
@@ -160,7 +160,7 @@ python czn_detector.py --live --act --max-seconds 8 --max-clicks 1 --input-backe
 用于测试主页到配队、对白推进、三选一识别等短流程。
 
 ```bat
-python czn_detector.py --live --act --max-seconds 60 --max-clicks 10 --input-backend postmessage_activate --advance-on-unknown --fast-start-to-team --wide-match-scales
+python src\main.py --live --act --max-seconds 60 --max-clicks 10 --input-backend postmessage_activate --advance-on-unknown --fast-start-to-team --wide-match-scales
 ```
 
 通过标准：能按预期走到三选一、奖励页或返回流程，没有明显乱点。
@@ -172,13 +172,13 @@ python czn_detector.py --live --act --max-seconds 60 --max-clicks 10 --input-bac
 用于稳定性测试，会持续运行直到停止键、找到目标卡或出错。
 
 ```bat
-python czn_detector.py --live --act --input-backend postmessage_activate --advance-on-unknown --fast-start-to-team --wide-match-scales
+python src\main.py --live --act --input-backend postmessage_activate --advance-on-unknown --fast-start-to-team --wide-match-scales
 ```
 
 如果后台点击不稳定，改用：
 
 ```bat
-python czn_detector.py --live --act --input-backend sendinput --advance-on-unknown --fast-start-to-team --wide-match-scales
+python src\main.py --live --act --input-backend sendinput --advance-on-unknown --fast-start-to-team --wide-match-scales
 ```
 
 ## 9. 指定显示器测试
@@ -194,8 +194,8 @@ python czn_detector.py --live --act --input-backend sendinput --advance-on-unkno
 如果多屏时找错屏，可以手动指定显示器：
 
 ```bat
-python czn_detector.py --live --monitor 1 --max-seconds 30
-python czn_detector.py --live --monitor 2 --max-seconds 30
+python src\main.py --live --monitor 1 --max-seconds 30
+python src\main.py --live --monitor 2 --max-seconds 30
 ```
 
 找到正确屏幕后，可以把 `config.json` 改成：
@@ -209,13 +209,13 @@ python czn_detector.py --live --monitor 2 --max-seconds 30
 如果已经有截图文件，可以直接检测单张图：
 
 ```bat
-python czn_detector.py --image path\to\screenshot.jpg
+python src\main.py --image path\to\screenshot.jpg
 ```
 
 如果需要输出标注图：
 
 ```bat
-python czn_detector.py --image path\to\screenshot.jpg --out-dir debug_live
+python src\main.py --image path\to\screenshot.jpg --out-dir debug_live
 ```
 
 适合用来验证新裁剪的模板是否能识别国服截图。
@@ -225,7 +225,7 @@ python czn_detector.py --image path\to\screenshot.jpg --out-dir debug_live
 如果录了一段完整流程视频，可以按固定间隔抽帧识别：
 
 ```bat
-python czn_detector.py --video path\to\recording.mp4 --every-sec 0.25 --out-dir debug_video
+python src\main.py --video path\to\recording.mp4 --every-sec 0.25 --out-dir debug_video
 ```
 
 适合检查状态流转是否稳定。
@@ -298,7 +298,7 @@ y = 977 / 1080 = 0.905
 打包前先跑：
 
 ```bat
-python -m py_compile czn_detector.py diagnose_input.py state_check.py
+python -m py_compile src\main.py src\state_check.py src\diagnose_input.py src\commands\cli.py src\commands\state_check.py src\commands\diagnose_input.py src\core\settings.py src\core\models.py src\vision\detector.py src\system\io_system.py src\system\controls.py src\actions\common.py src\ui\logging.py src\state_machines\live\session.py
 python -m json.tool config.example.json
 ```
 
@@ -307,7 +307,7 @@ python -m json.tool config.example.json
 只有需要发布安装包或便携包时才运行：
 
 ```bat
-build_release.bat
+packaging\build_release.bat
 ```
 
 打包后检查：

@@ -1,19 +1,22 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+from pathlib import Path
+
 from PyInstaller.utils.hooks import collect_submodules
 
 
 block_cipher = None
+ROOT = Path(SPECPATH).resolve().parent.parent
 
 hiddenimports = []
 for package in ("dxcam", "mss"):
     hiddenimports += collect_submodules(package)
 
 a = Analysis(
-    ["czn_detector.py"],
-    pathex=[],
+    [str(ROOT / "src" / "main.py")],
+    pathex=[str(ROOT / "src")],
     binaries=[],
-    datas=[("templates", "templates")],
+    datas=[(str(ROOT / "templates"), "templates")],
     hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
@@ -53,5 +56,5 @@ coll = COLLECT(
     strip=False,
     upx=False,
     upx_exclude=[],
-    name="CZNAuto",
+    name=str(ROOT / "dist" / "CZNAuto"),
 )

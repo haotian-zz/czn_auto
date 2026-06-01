@@ -159,7 +159,7 @@ config.json
 
 详细字段说明见：
 
-[CONFIG.md](./CONFIG.md)
+[CONFIG.md](docs/CONFIG.md)
 
 输入方式也在配置里：
 
@@ -382,19 +382,19 @@ python -m pip install -r requirements.txt
 只识别不点击：
 
 ```powershell
-python czn_detector.py --live
+python src\main.py --live
 ```
 
 实际点击：
 
 ```powershell
-python czn_detector.py --live --act --advance-on-unknown --fast-start-to-team --wide-match-scales
+python src\main.py --live --act --advance-on-unknown --fast-start-to-team --wide-match-scales
 ```
 
 单张图片识别：
 
 ```powershell
-python czn_detector.py --image path\to\screenshot.jpg --out-dir out
+python src\main.py --image path\to\screenshot.jpg --out-dir out
 ```
 
 常用开发脚本：
@@ -416,7 +416,7 @@ stop_czn_auto.bat
 运行：
 
 ```text
-build_release.bat
+packaging\build_release.bat
 ```
 
 生成结果：
@@ -431,13 +431,20 @@ dist\installer\CZNAutoSetup-0.1.7.exe
 ## 项目结构
 
 ```text
-czn_detector.py          主程序，识别和自动点击逻辑
+src\main.py              开发入口，启动 CLI
+src\core\settings.py     配置、路径、日志和运行参数
+src\core\models.py       共享数据结构
+src\vision\detector.py   识图和离线图片/视频检测
+src\system\io_system.py  截图、窗口定位和点击输入
+src\system\controls.py   停止键和中断等待
+src\actions\common.py    状态机可复用动作
+src\commands\*.py        CLI 和诊断命令实现
+src\ui\logging.py        动作日志输出
+src\state_machines\live  默认 live 自动化状态机
 templates\               默认识别模板
 config.example.json      默认配置模板
 CONFIG.md                配置字段说明
-installer\czn_auto.iss   Inno Setup 安装包脚本
-czn_auto.spec            PyInstaller 打包配置
-build_release.bat        本地打包脚本
+packaging\               打包脚本、PyInstaller spec、安装包配置和发布包 bat
 RELEASE.md               发布和打包规范
 start_*_admin.bat        开发环境正式启动脚本
 start_*_exe.bat          发布包正式启动脚本

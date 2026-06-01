@@ -3,7 +3,7 @@
 These rules come from actual failures during this task. Treat them as higher priority than quick fixes.
 
 1. Never judge current game state from an old saved screenshot.
-   Always run `python .\czn_auto\state_check.py` or capture a fresh monitor-1 frame before making a conclusion.
+   Always run `python src\state_check.py` or capture a fresh monitor-1 frame before making a conclusion.
 
 2. Do not use generic visual diff as proof of success.
    Animation, sparkles, cursor highlights, and menu glow can change pixels without changing flow state.
