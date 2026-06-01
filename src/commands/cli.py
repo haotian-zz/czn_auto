@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-import argparse
-import sys
 import traceback
-from pathlib import Path
 
 from vision.detector import CznDetector, run_image, run_video
 from system.io_system import resolve_monitor_index

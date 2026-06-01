@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import time
-from pathlib import Path
-
 import cv2
 import numpy as np
 
@@ -12,6 +9,7 @@ from system.io_system import click_frame_point, click_norm, rapid_click_norm, sc
 from core.models import DetectionState
 from core.settings import *
 from ui.logging import print_action
+
 def visual_diff_score(before: np.ndarray, after: np.ndarray) -> float:
     if before.shape[:2] != after.shape[:2]:
         return 999.0

@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-import ctypes
 import dataclasses
-import time
-from pathlib import Path
 
 import cv2
 import numpy as np
@@ -11,6 +8,7 @@ from ctypes import wintypes
 
 from vision.detector import CznDetector
 from core.models import DetectionState
+from core.settings import _coerce_config_value
 from core.settings import *
 def _monitor_meta(monitor_index: int) -> dict:
     import mss
@@ -704,4 +702,3 @@ def click_frame_point(point: tuple[int, int], monitor: dict, duration: float = 0
     y = int(monitor["top"] + point[1])
     print(f"click screen=({x},{y}){click_log_suffix(x, y)}", flush=True)
     click_screen_xy(x, y, duration=duration)
-
