@@ -9,7 +9,7 @@
 
 ```json
 "input": {
-  "target_window_title": "卡厄思梦境"
+  "target_window_title": "Chaos Zero Nightmare"
 }
 ```
 
@@ -24,6 +24,35 @@ F8 / Esc / Pause / End
 ```bat
 cd /d path\to\czn_auto
 ```
+
+## 一键测试命令
+
+可以直接运行：
+
+```bat
+scripts\test_workflow.bat
+```
+
+它会自动执行非点击测试：语法检查、JSON 检查、入口 help、当前画面识别、窗口 dry-run 诊断、live 只识别不点击。
+
+到了会实际点击游戏的测试时，会询问：
+
+```text
+y=yes, n=no
+```
+
+输入 `y` 才会继续执行单击测试或小流程点击测试；输入 `n` 会跳过对应点击测试。
+
+脚本退出前会清理本次测试在仓库内生成的临时文件：
+
+```text
+__pycache__\
+debug_live\fresh_state.jpg
+debug_live\fresh_state_annotated.jpg
+STOP
+```
+
+运行日志保留在 `%LOCALAPPDATA%\CZN Auto\logs`，用于失败排查。
 
 ## 1. 语法和配置检查
 
