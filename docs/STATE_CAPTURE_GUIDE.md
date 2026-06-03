@@ -202,3 +202,218 @@ templates/state_manifest.json
 ```text
 templates/state_manifest.example.json
 ```
+
+## 测试一个状态能否识别
+
+裁好模板并写入 `templates/state_manifest.json` 后，可以测试这个状态是否能被识别。
+
+### 1. 测试当前游戏画面
+
+先手动把游戏切到要测试的状态，例如“贪婪与执着详情界面”，然后运行：
+
+```powershell
+python -m commands.state_check --save-state greed
+```
+
+如果识别成功，输出会类似：
+
+```text
+fresh_state | greed | greed_title=0.914@(520,180) | greed_sortie_button=0.887@(3300,1960)
+```
+
+重点看第二段状态名是否是预期状态：
+
+```text
+fresh_state | greed | ...
+```
+
+如果输出是：
+
+```text
+fresh_state | unknown
+```
+
+说明当前 `state_manifest.json` 里的规则没有命中。
+
+常见原因：
+
+- `path` 指向的模板文件不存在或文件名写错。
+- `roi` 没覆盖模板在当前截图里的位置。
+- `threshold` 太高。
+- 裁图包含动画、发光、背景变化，导致匹配不稳定。
+- 模板太小或太普通，缺少可区分特征。
+
+### 2. 测试已保存截图
+
+也可以不用切游戏，直接拿之前保存的完整截图测试。
+
+示例：
+
+```powershell
+python .\src\main.py --image .\templates\simulate\battle_training\memory\greed\captures\20260603_120000_raw.jpg
+```
+
+如果需要保存标注图：
+
+```powershell
+python .\src\main.py --image .\templates\simulate\battle_training\memory\greed\captures\20260603_120000_raw.jpg --out-dir .\debug_live
+```
+
+标注图会保存到：
+
+```text
+debug_live/
+```
+
+### 3. 调整 ROI 和阈值
+
+如果识别不到，先不要马上重裁模板，优先调整 `state_manifest.json`：
+
+```json
+{
+  "name": "greed_sortie_button",
+  "path": "simulate/battle_training/memory/greed/greed_sortie_button.jpg",
+  "roi": [0.65, 0.72, 0.98, 0.98],
+  "threshold": 0.78
+}
+```
+
+调试顺序建议：
+
+1. 先把 `roi` 放大，确认搜索区域覆盖模板。
+2. 把 `threshold` 从 `0.82` 临时降到 `0.78`。
+3. 如果能识别，再逐步缩小 `roi`、提高 `threshold`。
+4. 如果仍然识别不到，再重新裁更稳定的模板。
+
+### 4. 一个状态多个模板
+
+如果一个状态容易和别的界面混淆，用多个模板并设置 `mode: "all"`：
+
+```json
+{
+  "label": "greed",
+  "priority": 110,
+  "mode": "all",
+  "templates": [
+    {
+      "name": "greed_title",
+      "path": "simulate/battle_training/memory/greed/greed_title.jpg",
+      "roi": [0.00, 0.00, 0.45, 0.30],
+      "threshold": 0.82
+    },
+    {
+      "name": "greed_sortie_button",
+      "path": "simulate/battle_training/memory/greed/greed_sortie_button.jpg",
+      "roi": [0.70, 0.78, 0.98, 0.98],
+      "threshold": 0.82
+    }
+  ]
+}
+```
+
+这表示必须同时匹配到 `greed_title` 和 `greed_sortie_button`，才认为当前状态是 `greed`。
+
+### 5. 多张截图和多模板的规则
+
+`captures/` 目录只是原始采集素材，不会自动参与识别。
+
+也就是说，即使这里有很多截图：
+
+```text
+templates/simulate/battle_training/memory/greed/captures/
+```
+
+程序也不会自动从里面挑一张来识别。真正参与识别的只有 `templates/state_manifest.json` 里明确写到 `path` 的模板文件。
+
+例如下面这个规则只会使用一个模板：
+
+```json
+{
+  "label": "greed",
+  "priority": 110,
+  "mode": "all",
+  "templates": [
+    {
+      "name": "greed_title",
+      "path": "simulate/battle_training/memory/greed/greed_title.jpg",
+      "roi": [0.00, 0.00, 0.45, 0.30],
+      "threshold": 0.82
+    }
+  ]
+}
+```
+
+程序只会读取：
+
+```text
+templates/simulate/battle_training/memory/greed/greed_title.jpg
+```
+
+不会自动读取：
+
+```text
+templates/simulate/battle_training/memory/greed/captures/*.jpg
+```
+
+如果同一个状态有多个可选模板，希望任意一个命中就算识别成功，使用 `mode: "any"`：
+
+```json
+{
+  "label": "greed",
+  "priority": 110,
+  "mode": "any",
+  "templates": [
+    {
+      "name": "greed_title_v1",
+      "path": "simulate/battle_training/memory/greed/greed_title_v1.jpg",
+      "roi": [0.00, 0.00, 0.45, 0.30],
+      "threshold": 0.82
+    },
+    {
+      "name": "greed_title_v2",
+      "path": "simulate/battle_training/memory/greed/greed_title_v2.jpg",
+      "roi": [0.00, 0.00, 0.45, 0.30],
+      "threshold": 0.82
+    }
+  ]
+}
+```
+
+这个规则表示：
+
+- `greed_title_v1` 命中，识别为 `greed`。
+- `greed_title_v1` 失败，但 `greed_title_v2` 命中，也识别为 `greed`。
+- 两个都失败，`greed` 状态识别失败。
+
+如果希望一个状态必须同时满足多个条件，使用 `mode: "all"`：
+
+```json
+{
+  "label": "greed",
+  "priority": 110,
+  "mode": "all",
+  "templates": [
+    {
+      "name": "greed_title",
+      "path": "simulate/battle_training/memory/greed/greed_title.jpg",
+      "roi": [0.00, 0.00, 0.45, 0.30],
+      "threshold": 0.82
+    },
+    {
+      "name": "greed_sortie_button",
+      "path": "simulate/battle_training/memory/greed/greed_sortie_button.jpg",
+      "roi": [0.70, 0.78, 0.98, 0.98],
+      "threshold": 0.82
+    }
+  ]
+}
+```
+
+这个规则表示必须同时匹配到标题和“出击”按钮，才识别为 `greed`。
+
+总结：
+
+- `captures/`：原始截图素材，不自动识别。
+- `state_manifest.json`：唯一识别入口。
+- `mode: "any"`：多个模板里任意一个成功即可。
+- `mode: "all"`：多个模板必须全部成功。
