@@ -125,7 +125,7 @@ def main() -> None:
     print_run_header(args, log_path)
 
     detector = None
-    if args.image or args.video or (args.live and args.flow == "dream-border"):
+    if args.image or args.video or args.live:
         detector = CznDetector(wide_match_scales=args.wide_match_scales)
     if args.image:
         run_image(detector, args.image, args.out_dir)
@@ -144,6 +144,7 @@ def main() -> None:
                 max_clicks=args.max_clicks,
                 interval=args.interval,
                 runs=args.workflow_runs,
+                detector=detector,
             ),
         ).run()
     elif args.live:

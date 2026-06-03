@@ -61,6 +61,7 @@ def main() -> None:
     parser.add_argument("--templates-root", type=Path, default=None, help="Root directory for saved state screenshots. Defaults to app templates/.")
     parser.add_argument("--list-states", action="store_true", help="List known --save-state names and their directories.")
     parser.add_argument("--no-detect", action="store_true", help="Only capture/save the screenshot; skip template-based detection.")
+    parser.add_argument("--test-action", help="After detecting the current state, test this manifest action template without clicking.")
     args = parser.parse_args()
     if args.list_states:
         print_known_states()
@@ -75,6 +76,9 @@ def main() -> None:
     frame, monitor = screen_shot(args.monitor, capture_method)
     print(f"capture={capture_method} monitor={monitor}")
     state = None
+    if args.test_action and args.no_detect:
+        parser.error("--test-action requires detection; remove --no-detect")
+
     if not args.no_detect:
         detector = CznDetector()
         state = detector.detect(frame)
@@ -96,6 +100,37 @@ def main() -> None:
             annotated_path = out_dir / f"{stamp}_{state.label}_annotated.jpg"
             save_image(annotated_path, annotate(frame, state))
             print(f"saved annotated capture: {annotated_path}")
+
+    if args.test_action and state is not None:
+        action = detector.action_spec(state.label, args.test_action)
+        if action is None:
+            print(f"action missing: state={state.label} action={args.test_action}")
+            return
+        print(f"action found: state={state.label} action={args.test_action} type={action.kind} target={action.target}")
+        if action.kind == "click_template":
+            if action.template is None:
+                print("action template missing")
+                return
+            match = detector.match_template(frame, action.template)
+            if match is None:
+                print(f"action template not matched: {action.template.name}")
+                return
+            click_point = match.point_at(*action.click_at)
+            print(
+                f"action template matched: {match.name} score={match.score:.3f} "
+                f"box={match.box} click_point={click_point}"
+            )
+            templates_root = args.templates_root or (root / "templates")
+            out_dir = capture_dir_for(args.save_state or state.label, templates_root)
+            stamp = time.strftime("%Y%m%d_%H%M%S")
+            action_state = type(state)(label=state.label, matches={f"action_{args.test_action}": match})
+            action_path = out_dir / f"{stamp}_{state.label}_{args.test_action}_action_annotated.jpg"
+            save_image(action_path, annotate(frame, action_state))
+            print(f"saved action annotated capture: {action_path}")
+        elif action.kind == "wheel":
+            print(f"wheel action: point={action.point} notches={action.notches} repeats={action.repeats}")
+        elif action.kind == "wait":
+            print(f"wait action: seconds={action.seconds}")
 
 
 if __name__ == "__main__":

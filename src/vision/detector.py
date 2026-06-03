@@ -20,11 +20,26 @@ class TemplateMatchSpec:
 
 
 @dataclasses.dataclass(frozen=True)
+class ActionSpec:
+    name: str
+    kind: str
+    target: str | None
+    template: TemplateMatchSpec | None = None
+    click_at: tuple[float, float] = (0.5, 0.5)
+    point: tuple[float, float] | None = None
+    notches: int = 0
+    repeats: int = 1
+    seconds: float = 0.0
+    wait_after: float = 0.5
+
+
+@dataclasses.dataclass(frozen=True)
 class StateMatchSpec:
     label: str
     mode: str
     priority: int
     templates: tuple[TemplateMatchSpec, ...]
+    actions: dict[str, ActionSpec] = dataclasses.field(default_factory=dict)
 
 
 class CznDetector:
@@ -77,7 +92,8 @@ class CznDetector:
         if not isinstance(raw_templates, list) or not raw_templates:
             raise ValueError("templates must be a non-empty list")
         templates = tuple(self._parse_template_spec(label, item) for item in raw_templates)
-        return StateMatchSpec(label=label, mode=mode, priority=priority, templates=templates)
+        actions = self._parse_action_specs(label, data.get("actions", {}))
+        return StateMatchSpec(label=label, mode=mode, priority=priority, templates=templates, actions=actions)
 
     @staticmethod
     def _parse_template_spec(label: str, data: object) -> TemplateMatchSpec:
@@ -97,6 +113,80 @@ class CznDetector:
         if not 0.0 < threshold <= 1.0:
             raise ValueError("template threshold must be between 0 and 1")
         return TemplateMatchSpec(name=name, path=path, roi=roi, threshold=threshold)
+
+    def _parse_action_specs(self, label: str, data: object) -> dict[str, ActionSpec]:
+        if data in (None, {}):
+            return {}
+        if not isinstance(data, dict):
+            raise ValueError("actions must be an object")
+        actions: dict[str, ActionSpec] = {}
+        for action_name, raw_action in data.items():
+            if not isinstance(raw_action, dict):
+                raise ValueError(f"action {action_name} must be an object")
+            actions[str(action_name)] = self._parse_action_spec(label, str(action_name), raw_action)
+        return actions
+
+    def _parse_action_spec(self, label: str, action_name: str, data: dict) -> ActionSpec:
+        kind = str(data.get("type", "click_template")).strip().lower()
+        target = data.get("target")
+        target_label = None if target is None else str(target).strip()
+        wait_after = float(data.get("wait_after", 0.5))
+        if wait_after < 0:
+            raise ValueError(f"action {action_name} wait_after must be >= 0")
+
+        if kind == "click_template":
+            raw_template = data.get("template")
+            if raw_template is None:
+                raise ValueError(f"action {action_name} template is required")
+            template = self._parse_template_spec(label, raw_template)
+            click_at = self._parse_unit_point(data.get("click_at", [0.5, 0.5]), f"action {action_name} click_at")
+            return ActionSpec(
+                name=action_name,
+                kind=kind,
+                target=target_label,
+                template=template,
+                click_at=click_at,
+                wait_after=wait_after,
+            )
+
+        if kind == "wheel":
+            point = self._parse_unit_point(data.get("point", [0.5, 0.5]), f"action {action_name} point")
+            repeats = int(data.get("repeats", 1))
+            if repeats < 0:
+                raise ValueError(f"action {action_name} repeats must be >= 0")
+            return ActionSpec(
+                name=action_name,
+                kind=kind,
+                target=target_label,
+                point=point,
+                notches=int(data.get("notches", 0)),
+                repeats=repeats,
+                wait_after=wait_after,
+            )
+
+        if kind == "wait":
+            seconds = float(data.get("seconds", 0.0))
+            if seconds < 0:
+                raise ValueError(f"action {action_name} seconds must be >= 0")
+            return ActionSpec(
+                name=action_name,
+                kind=kind,
+                target=target_label,
+                seconds=seconds,
+                wait_after=wait_after,
+            )
+
+        raise ValueError(f"action {action_name} type must be click_template, wheel, or wait")
+
+    @staticmethod
+    def _parse_unit_point(value: object, label: str) -> tuple[float, float]:
+        if not isinstance(value, list | tuple) or len(value) != 2:
+            raise ValueError(f"{label} must be [x, y]")
+        x = float(value[0])
+        y = float(value[1])
+        if not (0.0 <= x <= 1.0 and 0.0 <= y <= 1.0):
+            raise ValueError(f"{label} values must be between 0 and 1")
+        return x, y
 
     def _load_template(self, path: str) -> np.ndarray | None:
         cached = self._template_cache.get(path)
@@ -121,6 +211,31 @@ class CznDetector:
             if matches:
                 return detection_state(label=state_spec.label, matches=matches)
         return detection_state()
+
+    def state_spec(self, label: str) -> StateMatchSpec | None:
+        for spec in self.state_specs:
+            if spec.label == label:
+                return spec
+        return None
+
+    def action_spec(self, state_label: str, action_name: str) -> ActionSpec | None:
+        state = self.state_spec(state_label)
+        if state is None:
+            return None
+        return state.actions.get(action_name)
+
+    def match_template(self, frame_bgr: np.ndarray, template_spec: TemplateMatchSpec) -> MatchResult | None:
+        frame_gray = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY)
+        template = self._load_template(template_spec.path)
+        if template is None:
+            return None
+        return self._match_in_roi(
+            frame_gray,
+            template,
+            template_spec.roi,
+            template_spec.name,
+            threshold=template_spec.threshold,
+        )
 
     def _match_state(self, frame_gray: np.ndarray, state_spec: StateMatchSpec) -> dict[str, MatchResult]:
         matches: dict[str, MatchResult] = {}
