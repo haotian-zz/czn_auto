@@ -59,6 +59,13 @@ templates\
 - `choice_confirm_y`：点三选一选项后，对勾确认按钮的纵向比例；横向会根据选中的卡牌位置推算。
 - `team_fallback_match_max_x`：配队页被误识别成主页按钮时的横向判定阈值；识别点的 x 比例小于等于它，才可能触发配队兜底。
 - `team_fallback_match_min_y`：配队页被误识别成主页按钮时的纵向判定阈值；识别点的 y 比例大于等于它，才可能触发配队兜底。
+- `simulation` / `battle_training`：模拟入口、战斗训练入口点位。
+- `growth_tab` / `main_combatant_tab` / `support_combatant_tab` / `potential_tab` / `memory_fragment_tab` / `challenge_tab`：战斗训练页各分页点位，当前 `simulation-greed` 流程会使用 `memory_fragment_tab`。
+- `memory_fragment_list_scroll`：记忆碎片列表右侧滚动时鼠标所在位置。
+- `greed_and_obsession`：记忆碎片列表底部“贪婪与执着”点位。
+- `greed_sortie`：贪婪与执着界面的“出击”点位。
+- `auto_battle_top_right`：进入战斗后右上角启动自动战斗的点位。
+- `simulation_settlement_confirm`：战斗结算页确认点位。
 
 `team_fallback_match_max_x` 和 `team_fallback_match_min_y` 一般不用改。只有日志里明明在配队页，却一直没有出现 `team screen fallback: click fixed enter` 时，才考虑小幅调整。
 
@@ -108,6 +115,24 @@ templates\
 - `delay_after_unknown_burst`：对白/unknown 连点完成后的短等待。
 - `delay_unknown_idle`：unknown 状态但还没允许对白连点时的空等时间。
 - `delay_after_legend_confirm`：传说选项确认后的短等待。
+- `simulation_nav_wait`：模拟流程里普通导航点击后的等待。
+- `simulation_scroll_wait`：模拟流程里滚动列表后的等待。
+- `simulation_after_sortie_wait`：点“出击”后等待进入战斗的时间。
+- `simulation_auto_battle_start_wait`：点右上角自动战斗后的短等待。
+- `simulation_battle_finish_wait`：自动战斗预计完成时间；没有结算页模板前，这个值决定多久后点结算确认。
+- `simulation_settlement_confirm_wait`：点结算确认后等待回到“贪婪与执着”界面的时间。
+- `simulation_memory_fragment_scroll_notches`：记忆碎片列表每次滚轮滚动格数，负数表示向下。
+- `simulation_memory_fragment_scroll_repeats`：记忆碎片列表滚动次数。
+
+## 模拟战斗训练流程
+
+新流程入口：
+
+```powershell
+python .\src\main.py --live --flow simulation-greed --act --input-backend postmessage_activate --workflow-runs 1
+```
+
+它按固定点位执行：主界面点“模拟” -> “战斗训练” -> “记忆碎片” -> 列表下拉到底 -> “贪婪与执着” -> “出击” -> 右上角启动自动战斗 -> 等待战斗结束 -> 结算确认。当前没有这些界面的模板/OCR，所以点位和等待时间需要按实际截图校准。
 
 ## templates 识别图片
 

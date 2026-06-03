@@ -178,8 +178,9 @@ class Point(ctypes.Structure):
     _fields_ = (("x", ctypes.c_long), ("y", ctypes.c_long))
 
 
-def _send_mouse(flags: int, x: int | None = None, y: int | None = None) -> bool:
+def _send_mouse(flags: int, x: int | None = None, y: int | None = None, mouse_data: int = 0) -> bool:
     mi = MouseInput()
+    mi.mouseData = mouse_data
     if x is not None and y is not None:
         vx = ctypes.windll.user32.GetSystemMetrics(76)
         vy = ctypes.windll.user32.GetSystemMetrics(77)
@@ -592,6 +593,24 @@ def post_message_click_screen_xy(x: int, y: int, duration: float = 0.08, activat
         )
 
 
+def post_message_wheel_screen_xy(x: int, y: int, notches: int, activate: bool = False) -> None:
+    target = message_target_at(x, y)
+    if not target:
+        print(f"postmessage wheel skipped: no window at ({x},{y})", flush=True)
+        return
+    user32 = ctypes.windll.user32
+    if activate:
+        user32.PostMessageW(target, WM_ACTIVATE, WA_ACTIVE, 0)
+        time.sleep(0.01)
+    delta = int(notches * 120)
+    wparam = (delta & 0xFFFF) << 16
+    lparam = _make_lparam(x, y)
+    ok = user32.PostMessageW(target, 0x020A, wparam, lparam)
+    time.sleep(CLICK_AFTER_UP_DELAY)
+    if not ok:
+        print(f"postmessage wheel warning: target=0x{target:x} screen=({x},{y}) notches={notches}", flush=True)
+
+
 def click_screen_xy(x: int, y: int, duration: float = 0.08) -> None:
     if INPUT_BACKEND == INPUT_BACKEND_POSTMESSAGE:
         post_message_click_screen_xy(x, y, duration=duration, activate=False)
@@ -600,6 +619,25 @@ def click_screen_xy(x: int, y: int, duration: float = 0.08) -> None:
         post_message_click_screen_xy(x, y, duration=duration, activate=True)
         return
     click_screen_xy_sendinput(x, y, duration=duration)
+
+
+def wheel_screen_xy(x: int, y: int, notches: int) -> None:
+    if INPUT_BACKEND == INPUT_BACKEND_POSTMESSAGE:
+        post_message_wheel_screen_xy(x, y, notches=notches, activate=False)
+        return
+    if INPUT_BACKEND == INPUT_BACKEND_POSTMESSAGE_ACTIVATE:
+        post_message_wheel_screen_xy(x, y, notches=notches, activate=True)
+        return
+
+    saved_cursor = cursor_pos() if RESTORE_CURSOR_AFTER_CLICK else None
+    hwnd = window_at(x, y)
+    if hwnd:
+        ensure_foreground_and_top(hwnd)
+    ctypes.windll.user32.SetCursorPos(x, y)
+    time.sleep(CLICK_MOVE_DELAY)
+    _send_mouse(0x0800, mouse_data=int(notches * 120))
+    time.sleep(CLICK_AFTER_UP_DELAY)
+    restore_cursor_pos(saved_cursor)
 
 
 def ensure_foreground_and_top(hwnd: int) -> bool:
@@ -649,6 +687,14 @@ def click_norm(point: tuple[float, float], monitor: dict, duration: float = 0.08
     y = int(area["top"] + area["height"] * point[1])
     print(f"click screen=({x},{y}){click_log_suffix(x, y)}", flush=True)
     click_screen_xy(x, y, duration=duration)
+
+
+def wheel_norm(point: tuple[float, float], monitor: dict, notches: int) -> None:
+    area = click_area_for(monitor)
+    x = int(area["left"] + area["width"] * point[0])
+    y = int(area["top"] + area["height"] * point[1])
+    print(f"wheel screen=({x},{y}) notches={notches}{click_log_suffix(x, y)}", flush=True)
+    wheel_screen_xy(x, y, notches=notches)
 
 
 def rapid_click_norm(

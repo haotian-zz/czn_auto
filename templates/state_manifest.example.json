@@ -1,0 +1,109 @@
+{
+  "_说明": "复制为 templates/state_manifest.json 后生效。path 相对 templates/，roi 是 [x1, y1, x2, y2] 归一化区域。",
+  "_建议": "每个状态优先选 1-2 个稳定锚点模板，例如标题文字、固定按钮、页签高亮。不要用会变化的角色、奖励、背景特效。",
+  "states": [
+    {
+      "label": "main",
+      "priority": 100,
+      "mode": "all",
+      "templates": [
+        {
+          "name": "main_simulation_button",
+          "path": "common/main/main_simulation_button.jpg",
+          "roi": [0.70, 0.20, 0.98, 0.55],
+          "threshold": 0.82
+        }
+      ]
+    },
+    {
+      "label": "simulate",
+      "priority": 100,
+      "mode": "all",
+      "templates": [
+        {
+          "name": "simulate_battle_training_button",
+          "path": "simulate/simulate_battle_training_button.jpg",
+          "roi": [0.20, 0.15, 0.80, 0.85],
+          "threshold": 0.82
+        }
+      ]
+    },
+    {
+      "label": "battle_training",
+      "priority": 100,
+      "mode": "all",
+      "templates": [
+        {
+          "name": "battle_training_memory_tab",
+          "path": "simulate/battle_training/battle_training_memory_tab.jpg",
+          "roi": [0.45, 0.05, 0.85, 0.30],
+          "threshold": 0.82
+        }
+      ]
+    },
+    {
+      "label": "memory_fragment",
+      "priority": 100,
+      "mode": "all",
+      "templates": [
+        {
+          "name": "memory_fragment_title",
+          "path": "simulate/battle_training/memory/memory_fragment_title.jpg",
+          "roi": [0.00, 0.00, 0.35, 0.25],
+          "threshold": 0.82
+        }
+      ]
+    },
+    {
+      "label": "greed",
+      "priority": 110,
+      "mode": "all",
+      "templates": [
+        {
+          "name": "greed_title",
+          "path": "simulate/battle_training/memory/greed/greed_title.jpg",
+          "roi": [0.00, 0.00, 0.45, 0.30],
+          "threshold": 0.82
+        },
+        {
+          "name": "greed_sortie_button",
+          "path": "simulate/battle_training/memory/greed/greed_sortie_button.jpg",
+          "roi": [0.70, 0.78, 0.98, 0.98],
+          "threshold": 0.82
+        }
+      ]
+    },
+    {
+      "label": "greed_game",
+      "priority": 100,
+      "mode": "any",
+      "templates": [
+        {
+          "name": "auto_battle_button",
+          "path": "simulate/battle_training/memory/greed/in_game/auto_battle_button.jpg",
+          "roi": [0.85, 0.00, 1.00, 0.16],
+          "threshold": 0.82
+        },
+        {
+          "name": "battle_pause_button",
+          "path": "common/combat/battle_pause_button.jpg",
+          "roi": [0.85, 0.00, 1.00, 0.16],
+          "threshold": 0.82
+        }
+      ]
+    },
+    {
+      "label": "settlement",
+      "priority": 120,
+      "mode": "all",
+      "templates": [
+        {
+          "name": "settlement_confirm_button",
+          "path": "common/battle/settlement/settlement_confirm_button.jpg",
+          "roi": [0.30, 0.70, 0.70, 0.98],
+          "threshold": 0.82
+        }
+      ]
+    }
+  ]
+}

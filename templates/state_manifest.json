@@ -1,0 +1,4 @@
+{
+  "_说明": "状态识别唯一入口。把 templates/state_manifest.example.json 里的状态规则复制到这里，并把 path 指向实际模板文件。",
+  "states": []
+}

@@ -279,6 +279,14 @@ def runtime_timing_profile() -> dict:
         "delay_after_unknown_burst": DELAY_AFTER_UNKNOWN_BURST,
         "delay_unknown_idle": DELAY_UNKNOWN_IDLE,
         "delay_after_legend_confirm": DELAY_AFTER_LEGEND_CONFIRM,
+        "simulation_nav_wait": SIM_NAV_WAIT,
+        "simulation_scroll_wait": SIM_SCROLL_WAIT,
+        "simulation_after_sortie_wait": SIM_AFTER_SORTIE_WAIT,
+        "simulation_auto_battle_start_wait": SIM_AUTO_BATTLE_START_WAIT,
+        "simulation_battle_finish_wait": SIM_BATTLE_FINISH_WAIT,
+        "simulation_settlement_confirm_wait": SIM_SETTLEMENT_CONFIRM_WAIT,
+        "simulation_memory_fragment_scroll_notches": SIM_MEMORY_FRAGMENT_SCROLL_NOTCHES,
+        "simulation_memory_fragment_scroll_repeats": SIM_MEMORY_FRAGMENT_SCROLL_REPEATS,
         "click_window_log": LOG_CLICK_WINDOW,
     }
 
@@ -294,6 +302,14 @@ def runtime_click_profile() -> dict:
         "retry_top_right": CLICK_RETRY_TOP_RIGHT,
         "start_enter": CLICK_START_ENTER,
         "team_enter": CLICK_TEAM_ENTER,
+        "simulation": CLICK_SIMULATION,
+        "battle_training": CLICK_BATTLE_TRAINING,
+        "memory_fragment_tab": CLICK_MEMORY_FRAGMENT_TAB,
+        "memory_fragment_list_scroll": SCROLL_MEMORY_FRAGMENT_LIST,
+        "greed_and_obsession": CLICK_GREED_AND_OBSESSION,
+        "greed_sortie": CLICK_GREED_SORTIE,
+        "auto_battle_top_right": CLICK_AUTO_BATTLE_TOP_RIGHT,
+        "simulation_settlement_confirm": CLICK_SIM_SETTLEMENT_CONFIRM,
         "button_text_point": BUTTON_TEXT_POINT,
         "chain_flee": CHAIN_FLEE_POINT,
         "chain_return_confirm": CHAIN_RETURN_CONFIRM_POINT,
@@ -340,6 +356,19 @@ CLICK_CONFIRM = (0.895, 0.945)
 CLICK_RETRY_TOP_RIGHT = (0.955, 0.055)
 CLICK_START_ENTER = (0.840, 0.905)
 CLICK_TEAM_ENTER = (0.840, 0.905)
+CLICK_SIMULATION = (0.880, 0.360)
+CLICK_BATTLE_TRAINING = (0.500, 0.500)
+CLICK_GROWTH_TAB = (0.180, 0.180)
+CLICK_MAIN_COMBATANT_TAB = (0.300, 0.180)
+CLICK_SUPPORT_COMBATANT_TAB = (0.420, 0.180)
+CLICK_POTENTIAL_TAB = (0.540, 0.180)
+CLICK_MEMORY_FRAGMENT_TAB = (0.660, 0.180)
+CLICK_CHALLENGE_TAB = (0.780, 0.180)
+SCROLL_MEMORY_FRAGMENT_LIST = (0.865, 0.580)
+CLICK_GREED_AND_OBSESSION = (0.760, 0.875)
+CLICK_GREED_SORTIE = (0.875, 0.910)
+CLICK_AUTO_BATTLE_TOP_RIGHT = (0.955, 0.055)
+CLICK_SIM_SETTLEMENT_CONFIRM = (0.500, 0.900)
 BUTTON_TEXT_POINT = (0.78, 0.52)
 TEAM_FALLBACK_MATCH_MAX_X = 0.86
 TEAM_FALLBACK_MATCH_MIN_Y = 0.90
@@ -450,6 +479,14 @@ DELAY_AFTER_START_ENTER = 0.50
 DELAY_AFTER_UNKNOWN_BURST = 0.05
 DELAY_UNKNOWN_IDLE = 0.30
 DELAY_AFTER_LEGEND_CONFIRM = 1
+SIM_NAV_WAIT = 1.0
+SIM_SCROLL_WAIT = 0.5
+SIM_AFTER_SORTIE_WAIT = 8.0
+SIM_AUTO_BATTLE_START_WAIT = 1.0
+SIM_BATTLE_FINISH_WAIT = 90.0
+SIM_SETTLEMENT_CONFIRM_WAIT = 3.0
+SIM_MEMORY_FRAGMENT_SCROLL_NOTCHES = -7
+SIM_MEMORY_FRAGMENT_SCROLL_REPEATS = 4
 
 
 CONFIG_MESSAGES: list[str] = []
@@ -461,6 +498,19 @@ CONFIG_BINDINGS = {
         "retry_top_right": ("CLICK_RETRY_TOP_RIGHT", "point"),
         "start_enter": ("CLICK_START_ENTER", "point"),
         "team_enter": ("CLICK_TEAM_ENTER", "point"),
+        "simulation": ("CLICK_SIMULATION", "point"),
+        "battle_training": ("CLICK_BATTLE_TRAINING", "point"),
+        "growth_tab": ("CLICK_GROWTH_TAB", "point"),
+        "main_combatant_tab": ("CLICK_MAIN_COMBATANT_TAB", "point"),
+        "support_combatant_tab": ("CLICK_SUPPORT_COMBATANT_TAB", "point"),
+        "potential_tab": ("CLICK_POTENTIAL_TAB", "point"),
+        "memory_fragment_tab": ("CLICK_MEMORY_FRAGMENT_TAB", "point"),
+        "challenge_tab": ("CLICK_CHALLENGE_TAB", "point"),
+        "memory_fragment_list_scroll": ("SCROLL_MEMORY_FRAGMENT_LIST", "point"),
+        "greed_and_obsession": ("CLICK_GREED_AND_OBSESSION", "point"),
+        "greed_sortie": ("CLICK_GREED_SORTIE", "point"),
+        "auto_battle_top_right": ("CLICK_AUTO_BATTLE_TOP_RIGHT", "point"),
+        "simulation_settlement_confirm": ("CLICK_SIM_SETTLEMENT_CONFIRM", "point"),
         "button_text_point": ("BUTTON_TEXT_POINT", "point"),
         "chain_flee": ("CHAIN_FLEE_POINT", "point"),
         "chain_return_confirm": ("CHAIN_RETURN_CONFIRM_POINT", "point"),
@@ -512,6 +562,14 @@ CONFIG_BINDINGS = {
         "delay_after_unknown_burst": ("DELAY_AFTER_UNKNOWN_BURST", "nonnegative_float"),
         "delay_unknown_idle": ("DELAY_UNKNOWN_IDLE", "nonnegative_float"),
         "delay_after_legend_confirm": ("DELAY_AFTER_LEGEND_CONFIRM", "nonnegative_float"),
+        "simulation_nav_wait": ("SIM_NAV_WAIT", "nonnegative_float"),
+        "simulation_scroll_wait": ("SIM_SCROLL_WAIT", "nonnegative_float"),
+        "simulation_after_sortie_wait": ("SIM_AFTER_SORTIE_WAIT", "nonnegative_float"),
+        "simulation_auto_battle_start_wait": ("SIM_AUTO_BATTLE_START_WAIT", "nonnegative_float"),
+        "simulation_battle_finish_wait": ("SIM_BATTLE_FINISH_WAIT", "nonnegative_float"),
+        "simulation_settlement_confirm_wait": ("SIM_SETTLEMENT_CONFIRM_WAIT", "nonnegative_float"),
+        "simulation_memory_fragment_scroll_notches": ("SIM_MEMORY_FRAGMENT_SCROLL_NOTCHES", "int"),
+        "simulation_memory_fragment_scroll_repeats": ("SIM_MEMORY_FRAGMENT_SCROLL_REPEATS", "nonnegative_int"),
     },
     "input": {
         "backend": ("INPUT_BACKEND", "input_backend"),
@@ -529,6 +587,7 @@ _RUNTIME_SYNC_MODULES = {
     "commands.cli",
     "system.io_system",
     "state_machines.live.session",
+    "state_machines.simulation_training",
     "vision.detector",
 }
 
@@ -553,6 +612,19 @@ def default_user_config() -> dict:
             "retry_top_right": list(CLICK_RETRY_TOP_RIGHT),
             "start_enter": list(CLICK_START_ENTER),
             "team_enter": list(CLICK_TEAM_ENTER),
+            "simulation": list(CLICK_SIMULATION),
+            "battle_training": list(CLICK_BATTLE_TRAINING),
+            "growth_tab": list(CLICK_GROWTH_TAB),
+            "main_combatant_tab": list(CLICK_MAIN_COMBATANT_TAB),
+            "support_combatant_tab": list(CLICK_SUPPORT_COMBATANT_TAB),
+            "potential_tab": list(CLICK_POTENTIAL_TAB),
+            "memory_fragment_tab": list(CLICK_MEMORY_FRAGMENT_TAB),
+            "challenge_tab": list(CLICK_CHALLENGE_TAB),
+            "memory_fragment_list_scroll": list(SCROLL_MEMORY_FRAGMENT_LIST),
+            "greed_and_obsession": list(CLICK_GREED_AND_OBSESSION),
+            "greed_sortie": list(CLICK_GREED_SORTIE),
+            "auto_battle_top_right": list(CLICK_AUTO_BATTLE_TOP_RIGHT),
+            "simulation_settlement_confirm": list(CLICK_SIM_SETTLEMENT_CONFIRM),
             "button_text_point": list(BUTTON_TEXT_POINT),
             "chain_flee": list(CHAIN_FLEE_POINT),
             "chain_return_confirm": list(CHAIN_RETURN_CONFIRM_POINT),
@@ -605,6 +677,14 @@ def default_user_config() -> dict:
             "delay_after_unknown_burst": DELAY_AFTER_UNKNOWN_BURST,
             "delay_unknown_idle": DELAY_UNKNOWN_IDLE,
             "delay_after_legend_confirm": DELAY_AFTER_LEGEND_CONFIRM,
+            "simulation_nav_wait": SIM_NAV_WAIT,
+            "simulation_scroll_wait": SIM_SCROLL_WAIT,
+            "simulation_after_sortie_wait": SIM_AFTER_SORTIE_WAIT,
+            "simulation_auto_battle_start_wait": SIM_AUTO_BATTLE_START_WAIT,
+            "simulation_battle_finish_wait": SIM_BATTLE_FINISH_WAIT,
+            "simulation_settlement_confirm_wait": SIM_SETTLEMENT_CONFIRM_WAIT,
+            "simulation_memory_fragment_scroll_notches": SIM_MEMORY_FRAGMENT_SCROLL_NOTCHES,
+            "simulation_memory_fragment_scroll_repeats": SIM_MEMORY_FRAGMENT_SCROLL_REPEATS,
         },
         "input": {
             "_说明": "输入方式。sendinput 是默认真实鼠标点击；postmessage/postmessage_activate 是实验后台消息点击，可能被游戏忽略。",
@@ -660,6 +740,8 @@ def _coerce_config_value(value: object, kind: str, label: str) -> object:
         if number < 0:
             raise ValueError(f"{label} must be >= 0")
         return number
+    if kind == "int":
+        return int(value)
     if kind == "dialog_mode":
         text = str(value)
         if text not in {"rapid", "checked"}:

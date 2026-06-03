@@ -6,6 +6,8 @@ from vision.detector import CznDetector, run_image, run_video
 from system.io_system import resolve_monitor_index
 from core.settings import *
 from state_machines.live.session import run_live
+from state_machines.simulation_training import simulation_greed_workflow
+from state_machines.workflow import WorkflowConfig, WorkflowRunner
 
 
 def main() -> None:
@@ -32,11 +34,18 @@ def main() -> None:
     parser.add_argument("--log-file", type=Path, help="Write detailed run output to this log file. Defaults to LocalAppData\\CZN Auto\\logs.")
     parser.add_argument("--no-run-log", action="store_true", help="Disable the automatic per-run log file.")
     parser.add_argument("--live", action="store_true")
+    parser.add_argument(
+        "--flow",
+        choices=["dream-border", "simulation-greed"],
+        default="dream-border",
+        help="Live automation flow. dream-border keeps the existing card-search loop; simulation-greed runs 模拟/战斗训练/记忆碎片/贪婪与执着.",
+    )
     parser.add_argument("--act", action="store_true", help="Actually click in live mode. Omit for dry-run.")
     parser.add_argument("--interval", type=float, default=LIVE_LOOP_INTERVAL)
     parser.add_argument("--log-interval", type=float, default=LIVE_LOG_INTERVAL, help="Minimum seconds between repeated live state log lines. 0 prints every loop.")
     parser.add_argument("--max-seconds", type=float, default=0.0, help="Stop live mode after this many seconds. 0 means run until stopped/found.")
     parser.add_argument("--max-clicks", type=int, default=0, help="Stop live mode after this many actual clicks. 0 means unlimited.")
+    parser.add_argument("--workflow-runs", type=int, default=0, help="Stop coordinate workflow after this many completed battles. 0 means unlimited.")
     parser.add_argument("--post-click-wait", type=float, default=POST_CLICK_WAIT, help="Wait this many seconds after each click for a real visual change.")
     parser.add_argument(
         "--wait-after-team-enter",
@@ -115,11 +124,28 @@ def main() -> None:
         parser.error(str(exc))
     print_run_header(args, log_path)
 
-    detector = CznDetector(wide_match_scales=args.wide_match_scales)
+    detector = None
+    if args.image or args.video or (args.live and args.flow == "dream-border"):
+        detector = CznDetector(wide_match_scales=args.wide_match_scales)
     if args.image:
         run_image(detector, args.image, args.out_dir)
     elif args.video:
         run_video(detector, args.video, args.every_sec, args.out_dir)
+    elif args.live and args.flow == "simulation-greed":
+        WorkflowRunner(
+            simulation_greed_workflow(),
+            WorkflowConfig(
+                act=args.act,
+                monitor_index=args.monitor,
+                capture_method=args.capture_method,
+                stop_key=args.stop_key,
+                stop_file=args.stop_file,
+                max_seconds=args.max_seconds,
+                max_clicks=args.max_clicks,
+                interval=args.interval,
+                runs=args.workflow_runs,
+            ),
+        ).run()
     elif args.live:
         run_live(
             detector,

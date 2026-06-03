@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import time
 from pathlib import Path
 
 from vision.detector import CznDetector, annotate, print_state, save_image
@@ -14,13 +15,56 @@ from core.settings import (
 )
 
 
+STATE_CAPTURE_DIRS = {
+    "main": "common/main",
+    "dialog": "common/dialog",
+    "combat": "common/combat",
+    "settlement": "common/battle/settlement",
+    "start_screen": "common/dream/start_screen",
+    "team_screen": "common/dream/team_screen",
+    "choice_screen": "common/dream/choice_screen",
+    "legend_choice": "common/dream/legend_choice",
+    "card_reward": "common/dream/card_reward",
+    "return_confirm": "common/return_confirm",
+    "flee_screen": "common/flee_screen",
+    "simulate": "simulate",
+    "battle_training": "simulate/battle_training",
+    "growth": "simulate/battle_training/growth",
+    "main_combatant": "simulate/battle_training/main_combatant",
+    "support_combatant": "simulate/battle_training/support_combatant",
+    "potential": "simulate/battle_training/potential",
+    "memory_fragment": "simulate/battle_training/memory",
+    "challenge": "simulate/battle_training/challenge",
+    "greed": "simulate/battle_training/memory/greed",
+    "greed_game": "simulate/battle_training/memory/greed/in_game",
+}
+
+
+def capture_dir_for(state_name: str, root: Path) -> Path:
+    key = state_name.strip().replace("\\", "/").strip("/")
+    relative = STATE_CAPTURE_DIRS.get(key, key)
+    return root / relative / "captures"
+
+
+def print_known_states() -> None:
+    for name, relative in sorted(STATE_CAPTURE_DIRS.items()):
+        print(f"{name:24s} -> templates/{relative}/captures")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Capture one fresh frame and classify the current CZN state.")
     parser.add_argument("--config", type=Path, default=default_config_file())
     parser.add_argument("--no-user-config", action="store_true")
     parser.add_argument("--monitor")
     parser.add_argument("--capture-method", choices=sorted(CAPTURE_METHODS))
+    parser.add_argument("--save-state", help="Save the fresh screenshot under templates/<state>/captures.")
+    parser.add_argument("--templates-root", type=Path, default=None, help="Root directory for saved state screenshots. Defaults to app templates/.")
+    parser.add_argument("--list-states", action="store_true", help="List known --save-state names and their directories.")
+    parser.add_argument("--no-detect", action="store_true", help="Only capture/save the screenshot; skip template-based detection.")
     args = parser.parse_args()
+    if args.list_states:
+        print_known_states()
+        return
     if not args.no_user_config:
         apply_user_config(args.config, create_missing=False)
     monitor_value = args.monitor if args.monitor is not None else cfg.MONITOR_INDEX
@@ -29,12 +73,29 @@ def main() -> None:
 
     root = app_install_dir()
     frame, monitor = screen_shot(args.monitor, capture_method)
-    detector = CznDetector()
-    state = detector.detect(frame)
     print(f"capture={capture_method} monitor={monitor}")
-    print_state("fresh_state", state)
-    save_image(root / "debug_live" / "fresh_state.jpg", frame)
-    save_image(root / "debug_live" / "fresh_state_annotated.jpg", annotate(frame, state))
+    state = None
+    if not args.no_detect:
+        detector = CznDetector()
+        state = detector.detect(frame)
+        print_state("fresh_state", state)
+
+    debug_dir = root / "debug_live"
+    save_image(debug_dir / "fresh_state.jpg", frame)
+    if state is not None:
+        save_image(debug_dir / "fresh_state_annotated.jpg", annotate(frame, state))
+
+    if args.save_state:
+        templates_root = args.templates_root or (root / "templates")
+        out_dir = capture_dir_for(args.save_state, templates_root)
+        stamp = time.strftime("%Y%m%d_%H%M%S")
+        raw_path = out_dir / f"{stamp}_raw.jpg"
+        save_image(raw_path, frame)
+        print(f"saved capture: {raw_path}")
+        if state is not None:
+            annotated_path = out_dir / f"{stamp}_{state.label}_annotated.jpg"
+            save_image(annotated_path, annotate(frame, state))
+            print(f"saved annotated capture: {annotated_path}")
 
 
 if __name__ == "__main__":

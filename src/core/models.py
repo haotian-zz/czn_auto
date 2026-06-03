@@ -37,59 +37,78 @@ class MatchResult:
 
 @dataclasses.dataclass
 class DetectionState:
-    legend_choice: MatchResult | None
-    dream_card: MatchResult | None
-    card_reward: MatchResult | None
-    choice_card: MatchResult | None
-    return_confirm: MatchResult | None
-    start_screen: MatchResult | None
-    top_right_menu: MatchResult | None
-    flee_button: MatchResult | None
-    team_enter: MatchResult | None
-    dialog_indicator: MatchResult | None
+    label: str = "unknown"
+    matches: dict[str, MatchResult] = dataclasses.field(default_factory=dict)
 
     @property
-    def label(self) -> str:
-        if self.dream_card:
-            return "dream_found"
-        if self.card_reward:
-            return "card_reward"
-        if self.return_confirm:
-            return "return_confirm"
-        if self.legend_choice:
-            return "legend_choice"
-        if self.choice_card:
-            return "choice_screen"
-        if self.flee_button:
-            return "flee_screen"
-        if self.team_enter:
-            return "team_screen"
-        if self.start_screen:
-            return "start_screen"
-        return "unknown"
+    def best_match(self) -> MatchResult | None:
+        if not self.matches:
+            return None
+        return max(self.matches.values(), key=lambda match: match.score)
+
+    def match(self, name: str) -> MatchResult | None:
+        return self.matches.get(name)
+
+    @property
+    def custom(self) -> MatchResult | None:
+        return self.best_match
+
+    @property
+    def custom_label(self) -> str | None:
+        return None if self.label == "unknown" else self.label
+
+    # These properties keep older automation modules importable while the
+    # detector itself uses only manifest-driven labels and match names.
+    @property
+    def legend_choice(self) -> MatchResult | None:
+        return self.match("legend_choice")
+
+    @property
+    def dream_card(self) -> MatchResult | None:
+        return self.match("dream_found") or self.match("dream_card")
+
+    @property
+    def card_reward(self) -> MatchResult | None:
+        return self.match("card_reward")
+
+    @property
+    def choice_card(self) -> MatchResult | None:
+        return self.match("choice_screen") or self.match("choice_card")
+
+    @property
+    def return_confirm(self) -> MatchResult | None:
+        return self.match("return_confirm")
+
+    @property
+    def start_screen(self) -> MatchResult | None:
+        return self.match("start_screen")
+
+    @property
+    def top_right_menu(self) -> MatchResult | None:
+        return self.match("top_right_menu")
+
+    @property
+    def flee_button(self) -> MatchResult | None:
+        return self.match("flee_screen") or self.match("flee_button")
+
+    @property
+    def team_enter(self) -> MatchResult | None:
+        return self.match("team_screen") or self.match("team_enter")
+
+    @property
+    def dialog_indicator(self) -> MatchResult | None:
+        return self.match("dialog_indicator")
 
 
 def detection_state(
-    legend_choice: MatchResult | None = None,
-    dream_card: MatchResult | None = None,
-    card_reward: MatchResult | None = None,
-    choice_card: MatchResult | None = None,
-    return_confirm: MatchResult | None = None,
-    start_screen: MatchResult | None = None,
-    top_right_menu: MatchResult | None = None,
-    flee_button: MatchResult | None = None,
-    team_enter: MatchResult | None = None,
-    dialog_indicator: MatchResult | None = None,
+    label: str = "unknown",
+    matches: dict[str, MatchResult] | None = None,
+    **legacy_matches: MatchResult | None,
 ) -> DetectionState:
-    return DetectionState(
-        legend_choice=legend_choice,
-        dream_card=dream_card,
-        card_reward=card_reward,
-        choice_card=choice_card,
-        return_confirm=return_confirm,
-        start_screen=start_screen,
-        top_right_menu=top_right_menu,
-        flee_button=flee_button,
-        team_enter=team_enter,
-        dialog_indicator=dialog_indicator,
-    )
+    state_matches = dict(matches or {})
+    for name, match in legacy_matches.items():
+        if match is not None:
+            state_matches[name] = match
+            if label == "unknown":
+                label = name
+    return DetectionState(label=label, matches=state_matches)
