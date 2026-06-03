@@ -62,9 +62,9 @@
       "mode": "all",
       "templates": [
         {
-          "name": "battle_training_memory_tab",
-          "path": "simulate/battle_training/battle_training_memory_tab.jpg",
-          "roi": [0.45, 0.05, 0.85, 0.30],
+          "name": "battle_training_growth_selected_tab",
+          "path": "simulate/battle_training/battle_training_growth_selected_tab.jpg",
+          "roi": [0.00, 0.10, 0.35, 0.55],
           "threshold": 0.82
         }
       ],
@@ -73,12 +73,13 @@
           "type": "click_template",
           "target": "memory_fragment",
           "template": {
-            "name": "battle_training_memory_tab",
-            "path": "simulate/battle_training/battle_training_memory_tab.jpg",
-            "roi": [0.45, 0.05, 0.85, 0.30],
+            "name": "battle_training_growth_selected_tab",
+            "path": "simulate/battle_training/battle_training_growth_selected_tab.jpg",
+            "roi": [0.00, 0.10, 0.35, 0.55],
             "threshold": 0.82
           },
           "click_at": [0.5, 0.5],
+          "click_offset": [0, 300],
           "wait_after": 1.0
         }
       }

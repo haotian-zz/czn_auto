@@ -65,7 +65,7 @@ python -m commands.state_check --list-states
 |---|---|
 | 状态 `main` + 动作 `click_simulation` | `templates/common/main/main_simulation_button.jpg` |
 | 状态 `simulate` + 动作 `click_battle_training` | `templates/simulate/simulate_battle_training_button.jpg` |
-| 状态 `battle_training` + 动作 `click_memory_fragment` | `templates/simulate/battle_training/battle_training_memory_tab.jpg` |
+| 状态 `battle_training` + 动作 `click_memory_fragment` | `templates/simulate/battle_training/battle_training_growth_selected_tab.jpg` |
 | 状态 `memory_fragment` | `templates/simulate/battle_training/memory/memory_fragment_title.jpg` |
 | 动作 `click_greed` | `templates/simulate/battle_training/memory/greed/greed_list_item.jpg` |
 | 状态 `greed` | `templates/simulate/battle_training/memory/greed/greed_title.jpg` |
@@ -118,6 +118,7 @@ templates/state_manifest.example.json
         "threshold": 0.82
       },
       "click_at": [0.5, 0.5],
+      "click_offset": [0, 0],
       "wait_after": 1.0
     }
   }
@@ -127,8 +128,11 @@ templates/state_manifest.example.json
 动作类型：
 
 - `click_template`：用动作模板定位按钮，点击匹配框内的 `click_at`。
+- `click_offset`：在 `click_at` 得到的点上追加像素偏移，例如 `[0, 300]` 表示向下 300 像素点击。
 - `wheel`：在指定归一化坐标滚轮，例如列表下拉。
 - `wait`：纯等待，例如等战斗结算。
+
+`battle_training -> memory_fragment` 推荐识别默认选中的“成长”页签，然后用 `click_offset` 向下偏移点击“记忆碎片”。这样不用识别背景动态的未选中页签。
 
 ## 5. 测试状态识别
 

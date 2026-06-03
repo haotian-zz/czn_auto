@@ -147,10 +147,11 @@ def main() -> None:
             if match is None:
                 print(f"action template not matched: {action.template.name}")
                 return
-            click_point = match.point_at(*action.click_at)
+            base_point = match.point_at(*action.click_at)
+            click_point = (base_point[0] + action.click_offset[0], base_point[1] + action.click_offset[1])
             print(
                 f"action template matched: {match.name} score={match.score:.3f} "
-                f"box={match.box} click_point={click_point}"
+                f"box={match.box} base_point={base_point} click_offset={action.click_offset} click_point={click_point}"
             )
             templates_root = args.templates_root or (root / "templates")
             out_dir = capture_dir_for(args.save_state or state.label, templates_root)

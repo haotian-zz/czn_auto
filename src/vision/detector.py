@@ -27,6 +27,7 @@ class ActionSpec:
     target: str | None
     template: TemplateMatchSpec | None = None
     click_at: tuple[float, float] = (0.5, 0.5)
+    click_offset: tuple[int, int] = (0, 0)
     point: tuple[float, float] | None = None
     notches: int = 0
     repeats: int = 1
@@ -153,6 +154,7 @@ class CznDetector:
                 target=target_label,
                 template=template,
                 click_at=click_at,
+                click_offset=self._parse_pixel_offset(data.get("click_offset", [0, 0]), f"action {action_name} click_offset"),
                 wait_after=wait_after,
             )
 
@@ -194,6 +196,12 @@ class CznDetector:
         if not (0.0 <= x <= 1.0 and 0.0 <= y <= 1.0):
             raise ValueError(f"{label} values must be between 0 and 1")
         return x, y
+
+    @staticmethod
+    def _parse_pixel_offset(value: object, label: str) -> tuple[int, int]:
+        if not isinstance(value, list | tuple) or len(value) != 2:
+            raise ValueError(f"{label} must be [dx, dy]")
+        return int(value[0]), int(value[1])
 
     def _load_template(self, path: str) -> np.ndarray | None:
         cached = self._template_cache.get(path)

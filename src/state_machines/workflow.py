@@ -174,9 +174,11 @@ class ManifestAction(WorkflowAction):
                     flush=True,
                 )
                 return False
-            click_point = match.point_at(*spec.click_at)
+            base_point = match.point_at(*spec.click_at)
+            click_point = (base_point[0] + spec.click_offset[0], base_point[1] + spec.click_offset[1])
             print_action(
-                f"manifest {self.state_label}.{self.action_name} click {match.name} at {click_point}",
+                f"manifest {self.state_label}.{self.action_name} click {match.name} "
+                f"base={base_point} offset={spec.click_offset} final={click_point}",
                 spec.click_at,
                 ctx.config.act,
             )
