@@ -51,6 +51,16 @@ def print_known_states() -> None:
         print(f"{name:24s} -> templates/{relative}/captures")
 
 
+def limit_detector_to_state(detector: CznDetector, state_name: str | None) -> None:
+    if not state_name:
+        return
+    filtered = tuple(spec for spec in detector.state_specs if spec.label == state_name)
+    if not filtered:
+        return
+    detector.state_specs = filtered
+    print(f"state check filter: only testing state={state_name}", flush=True)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Capture one fresh frame and classify the current CZN state.")
     parser.add_argument("--config", type=Path, default=default_config_file())
@@ -81,6 +91,7 @@ def main() -> None:
 
     if not args.no_detect:
         detector = CznDetector()
+        limit_detector_to_state(detector, args.save_state)
         state = detector.detect(frame)
         print_state("fresh_state", state)
 

@@ -134,6 +134,8 @@ templates/state_manifest.example.json
 
 状态模板写入 `state_manifest.json` 后，可以测试当前游戏画面，也可以测试已保存截图。
 
+使用 `python -m commands.state_check --save-state <状态名>` 测试当前画面时，工具只会测试这个状态，不会被其它状态尚未裁好的模板干扰。完整自动流程运行时才会按 manifest 优先级扫描所有状态。
+
 | 状态名 | 当前画面测试 | 已保存截图测试 |
 |---|---|---|
 | `main` | `python -m commands.state_check --save-state main` | `python .\src\main.py --image .\templates\common\main\captures\<raw>.jpg --out-dir .\debug_live` |

@@ -193,6 +193,9 @@ class CznDetector:
         if cached is not None:
             return cached
         full_path = self.template_dir / path
+        if not full_path.exists():
+            print(f"warning: template not found: {full_path}", flush=True)
+            return None
         image = cv2.imdecode(np.fromfile(str(full_path), dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
         if image is None:
             print(f"warning: template not found or unreadable: {full_path}", flush=True)
