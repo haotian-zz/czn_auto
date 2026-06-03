@@ -17,6 +17,7 @@ class TemplateMatchSpec:
     path: str
     roi: Box
     threshold: float
+    scales: tuple[float, ...] = (1.0,)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -106,13 +107,19 @@ class CznDetector:
             raise ValueError("template roi must be [x1, y1, x2, y2]")
         roi = Box(float(raw_roi[0]), float(raw_roi[1]), float(raw_roi[2]), float(raw_roi[3]))
         threshold = float(data.get("threshold", 0.80))
+        raw_scales = data.get("scales", [1.0])
+        if not isinstance(raw_scales, list | tuple) or not raw_scales:
+            raise ValueError("template scales must be a non-empty list")
+        scales = tuple(float(scale) for scale in raw_scales)
         if not path:
             raise ValueError("template path is required")
         if not (0.0 <= roi.x1 < roi.x2 <= 1.0 and 0.0 <= roi.y1 < roi.y2 <= 1.0):
             raise ValueError("template roi values must be normalized and ordered")
         if not 0.0 < threshold <= 1.0:
             raise ValueError("template threshold must be between 0 and 1")
-        return TemplateMatchSpec(name=name, path=path, roi=roi, threshold=threshold)
+        if any(scale <= 0 for scale in scales):
+            raise ValueError("template scales must be > 0")
+        return TemplateMatchSpec(name=name, path=path, roi=roi, threshold=threshold, scales=scales)
 
     def _parse_action_specs(self, label: str, data: object) -> dict[str, ActionSpec]:
         if data in (None, {}):
@@ -238,6 +245,7 @@ class CznDetector:
             template_spec.roi,
             template_spec.name,
             threshold=template_spec.threshold,
+            scales=template_spec.scales,
         )
 
     def template_best_score(
@@ -249,7 +257,7 @@ class CznDetector:
         template = self._load_template(template_spec.path)
         if template is None:
             return -1.0, None
-        return self._best_score_in_roi(frame_gray, template, template_spec.roi)
+        return self._best_score_in_roi(frame_gray, template, template_spec.roi, template_spec.scales)
 
     def _match_state(self, frame_gray: np.ndarray, state_spec: StateMatchSpec) -> dict[str, MatchResult]:
         matches: dict[str, MatchResult] = {}
@@ -265,6 +273,7 @@ class CznDetector:
                 template_spec.roi,
                 template_spec.name,
                 threshold=template_spec.threshold,
+                scales=template_spec.scales,
             )
             if match:
                 matches[template_spec.name] = match
@@ -281,6 +290,7 @@ class CznDetector:
         roi: Box,
         name: str,
         threshold: float,
+        scales: tuple[float, ...] = (1.0,),
     ) -> MatchResult | None:
         height, width = frame_gray.shape[:2]
         x1, y1, x2, y2 = roi.to_pixels(width, height)
@@ -288,15 +298,13 @@ class CznDetector:
         if haystack.size == 0:
             return None
 
-        base_scale = self._template_scale(width, height)
         best_score = -1.0
         best_loc = (0, 0)
         best_size = (0, 0)
-        for scale_factor in self.match_scale_factors:
-            scale = base_scale * scale_factor
+        for scale in scales:
             template_width = max(8, int(round(template_gray.shape[1] * scale)))
             template_height = max(8, int(round(template_gray.shape[0] * scale)))
-            if template_width >= haystack.shape[1] or template_height >= haystack.shape[0]:
+            if template_width > haystack.shape[1] or template_height > haystack.shape[0]:
                 continue
             template = cv2.resize(template_gray, (template_width, template_height), interpolation=cv2.INTER_AREA)
             score_map = cv2.matchTemplate(haystack, template, cv2.TM_CCOEFF_NORMED)
@@ -326,6 +334,7 @@ class CznDetector:
         frame_gray: np.ndarray,
         template_gray: np.ndarray,
         roi: Box,
+        scales: tuple[float, ...] = (1.0,),
     ) -> tuple[float, tuple[int, int, int, int] | None]:
         height, width = frame_gray.shape[:2]
         x1, y1, x2, y2 = roi.to_pixels(width, height)
@@ -333,15 +342,13 @@ class CznDetector:
         if haystack.size == 0:
             return -1.0, None
 
-        base_scale = self._template_scale(width, height)
         best_score = -1.0
         best_loc = (0, 0)
         best_size = (0, 0)
-        for scale_factor in self.match_scale_factors:
-            scale = base_scale * scale_factor
+        for scale in scales:
             template_width = max(8, int(round(template_gray.shape[1] * scale)))
             template_height = max(8, int(round(template_gray.shape[0] * scale)))
-            if template_width >= haystack.shape[1] or template_height >= haystack.shape[0]:
+            if template_width > haystack.shape[1] or template_height > haystack.shape[0]:
                 continue
             template = cv2.resize(template_gray, (template_width, template_height), interpolation=cv2.INTER_AREA)
             score_map = cv2.matchTemplate(haystack, template, cv2.TM_CCOEFF_NORMED)
