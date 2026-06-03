@@ -203,6 +203,36 @@ templates/state_manifest.json
 templates/state_manifest.example.json
 ```
 
+## Manifest 字段含义
+
+程序不会按 `label` 自动找同名图片。识别使用哪张图片，完全由 `templates[].path` 决定。
+
+```json
+{
+  "label": "greed",
+  "priority": 110,
+  "mode": "all",
+  "templates": [
+    {
+      "name": "greed_title",
+      "path": "simulate/battle_training/memory/greed/greed_title.jpg",
+      "roi": [0.00, 0.00, 0.45, 0.30],
+      "threshold": 0.82
+    }
+  ]
+}
+```
+
+字段含义：
+
+- `label`：识别成功后返回的状态名，例如 `greed`。
+- `path`：实际用于匹配的模板图片路径，相对 `templates/`。
+- `name`：这张模板的日志名，识别输出里会显示。
+- `roi`：在完整截图里搜索模板的大概区域，不是模板图片自己的坐标。
+- `threshold`：匹配阈值。
+- `priority`：多个状态都可能命中时，数值越高越优先判断。
+- `mode`：`all` 表示所有模板都必须命中；`any` 表示任意一个模板命中即可。
+
 ## 测试一个状态能否识别
 
 裁好模板并写入 `templates/state_manifest.json` 后，可以测试这个状态是否能被识别。
@@ -265,7 +295,175 @@ python .\src\main.py --image .\templates\simulate\battle_training\memory\greed\c
 debug_live/
 ```
 
-### 3. 调整 ROI 和阈值
+### 3. 完整流程逐状态测试命令
+
+下面这些命令假设你已经裁好了小模板，并把模板路径写进 `templates/state_manifest.json`。
+
+先设置环境：
+
+```powershell
+$env:PYTHONPATH="src"
+```
+
+#### 主界面 `main`
+
+测试当前游戏画面：
+
+```powershell
+python -m commands.state_check --save-state main
+```
+
+测试已保存截图：
+
+```powershell
+python .\src\main.py --image .\templates\common\main\captures\<你的_raw截图>.jpg --out-dir .\debug_live
+```
+
+期望输出包含：
+
+```text
+main
+```
+
+#### 模拟界面 `simulate`
+
+测试当前游戏画面：
+
+```powershell
+python -m commands.state_check --save-state simulate
+```
+
+测试已保存截图：
+
+```powershell
+python .\src\main.py --image .\templates\simulate\captures\<你的_raw截图>.jpg --out-dir .\debug_live
+```
+
+期望输出包含：
+
+```text
+simulate
+```
+
+#### 战斗训练界面 `battle_training`
+
+测试当前游戏画面：
+
+```powershell
+python -m commands.state_check --save-state battle_training
+```
+
+测试已保存截图：
+
+```powershell
+python .\src\main.py --image .\templates\simulate\battle_training\captures\<你的_raw截图>.jpg --out-dir .\debug_live
+```
+
+期望输出包含：
+
+```text
+battle_training
+```
+
+#### 记忆碎片界面 `memory_fragment`
+
+测试当前游戏画面：
+
+```powershell
+python -m commands.state_check --save-state memory_fragment
+```
+
+测试已保存截图：
+
+```powershell
+python .\src\main.py --image .\templates\simulate\battle_training\memory\captures\<你的_raw截图>.jpg --out-dir .\debug_live
+```
+
+期望输出包含：
+
+```text
+memory_fragment
+```
+
+#### 贪婪与执着入口/详情 `greed`
+
+测试当前游戏画面：
+
+```powershell
+python -m commands.state_check --save-state greed
+```
+
+测试已保存截图：
+
+```powershell
+python .\src\main.py --image .\templates\simulate\battle_training\memory\greed\captures\<你的_raw截图>.jpg --out-dir .\debug_live
+```
+
+期望输出包含：
+
+```text
+greed
+```
+
+#### 战斗中 `greed_game`
+
+测试当前游戏画面：
+
+```powershell
+python -m commands.state_check --save-state greed_game
+```
+
+测试已保存截图：
+
+```powershell
+python .\src\main.py --image .\templates\simulate\battle_training\memory\greed\in_game\captures\<你的_raw截图>.jpg --out-dir .\debug_live
+```
+
+期望输出包含：
+
+```text
+greed_game
+```
+
+#### 战斗结算 `settlement`
+
+测试当前游戏画面：
+
+```powershell
+python -m commands.state_check --save-state settlement
+```
+
+测试已保存截图：
+
+```powershell
+python .\src\main.py --image .\templates\common\battle\settlement\captures\<你的_raw截图>.jpg --out-dir .\debug_live
+```
+
+期望输出包含：
+
+```text
+settlement
+```
+
+成功输出示例：
+
+```text
+fresh_state | greed | greed_title=0.914@(520,180)
+```
+
+或：
+
+```text
+20260603_120000_raw.jpg | greed | greed_title=0.914@(520,180)
+```
+
+失败输出通常是：
+
+```text
+fresh_state | unknown
+```
+
+### 4. 调整 ROI 和阈值
 
 如果识别不到，先不要马上重裁模板，优先调整 `state_manifest.json`：
 
@@ -285,7 +483,7 @@ debug_live/
 3. 如果能识别，再逐步缩小 `roi`、提高 `threshold`。
 4. 如果仍然识别不到，再重新裁更稳定的模板。
 
-### 4. 一个状态多个模板
+### 5. 一个状态多个模板
 
 如果一个状态容易和别的界面混淆，用多个模板并设置 `mode: "all"`：
 
@@ -313,7 +511,7 @@ debug_live/
 
 这表示必须同时匹配到 `greed_title` 和 `greed_sortie_button`，才认为当前状态是 `greed`。
 
-### 5. 多张截图和多模板的规则
+### 6. 多张截图和多模板的规则
 
 `captures/` 目录只是原始采集素材，不会自动参与识别。
 
