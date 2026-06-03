@@ -61,6 +61,25 @@ def limit_detector_to_state(detector: CznDetector, state_name: str | None) -> No
     print(f"state check filter: only testing state={state_name}", flush=True)
 
 
+def print_state_template_debug(detector: CznDetector, frame, state_name: str | None) -> None:
+    if not state_name:
+        return
+    spec = detector.state_spec(state_name)
+    if spec is None:
+        print(f"state template debug: state not found in manifest: {state_name}", flush=True)
+        return
+    for template in spec.templates:
+        score, box = detector.template_best_score(frame, template)
+        box_text = "none" if box is None else str(box)
+        print(
+            "state template debug: "
+            f"state={state_name} template={template.name} path={template.path} "
+            f"threshold={template.threshold:.3f} best_score={score:.3f} box={box_text} "
+            f"roi={[template.roi.x1, template.roi.y1, template.roi.x2, template.roi.y2]}",
+            flush=True,
+        )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Capture one fresh frame and classify the current CZN state.")
     parser.add_argument("--config", type=Path, default=default_config_file())
@@ -94,6 +113,8 @@ def main() -> None:
         limit_detector_to_state(detector, args.save_state)
         state = detector.detect(frame)
         print_state("fresh_state", state)
+        if state.label == "unknown":
+            print_state_template_debug(detector, frame, args.save_state)
 
     debug_dir = root / "debug_live"
     save_image(debug_dir / "fresh_state.jpg", frame)

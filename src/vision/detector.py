@@ -240,6 +240,17 @@ class CznDetector:
             threshold=template_spec.threshold,
         )
 
+    def template_best_score(
+        self,
+        frame_bgr: np.ndarray,
+        template_spec: TemplateMatchSpec,
+    ) -> tuple[float, tuple[int, int, int, int] | None]:
+        frame_gray = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY)
+        template = self._load_template(template_spec.path)
+        if template is None:
+            return -1.0, None
+        return self._best_score_in_roi(frame_gray, template, template_spec.roi)
+
     def _match_state(self, frame_gray: np.ndarray, state_spec: StateMatchSpec) -> dict[str, MatchResult]:
         matches: dict[str, MatchResult] = {}
         for template_spec in state_spec.templates:
@@ -308,6 +319,47 @@ class CznDetector:
                 x1 + match_x + template_width,
                 y1 + match_y + template_height,
             ),
+        )
+
+    def _best_score_in_roi(
+        self,
+        frame_gray: np.ndarray,
+        template_gray: np.ndarray,
+        roi: Box,
+    ) -> tuple[float, tuple[int, int, int, int] | None]:
+        height, width = frame_gray.shape[:2]
+        x1, y1, x2, y2 = roi.to_pixels(width, height)
+        haystack = frame_gray[y1:y2, x1:x2]
+        if haystack.size == 0:
+            return -1.0, None
+
+        base_scale = self._template_scale(width, height)
+        best_score = -1.0
+        best_loc = (0, 0)
+        best_size = (0, 0)
+        for scale_factor in self.match_scale_factors:
+            scale = base_scale * scale_factor
+            template_width = max(8, int(round(template_gray.shape[1] * scale)))
+            template_height = max(8, int(round(template_gray.shape[0] * scale)))
+            if template_width >= haystack.shape[1] or template_height >= haystack.shape[0]:
+                continue
+            template = cv2.resize(template_gray, (template_width, template_height), interpolation=cv2.INTER_AREA)
+            score_map = cv2.matchTemplate(haystack, template, cv2.TM_CCOEFF_NORMED)
+            _, max_score, _, max_loc = cv2.minMaxLoc(score_map)
+            if max_score > best_score:
+                best_score = float(max_score)
+                best_loc = max_loc
+                best_size = (template_width, template_height)
+
+        if best_size == (0, 0):
+            return best_score, None
+        match_x, match_y = best_loc
+        template_width, template_height = best_size
+        return best_score, (
+            x1 + match_x,
+            y1 + match_y,
+            x1 + match_x + template_width,
+            y1 + match_y + template_height,
         )
 
     def _template_scale(self, width: int, height: int) -> float:
